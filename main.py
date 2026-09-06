@@ -34,7 +34,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     
     try:
-        # Petición a la API de Groq con el modelo Llama 3.1 soportado actualmente
+        # Petición a la API de Groq con el modelo oficial activo openai/gpt-oss-20b
         chat_completion = client.chat.completions.create(
             messages=[
                 {
@@ -46,7 +46,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "content": user_text,
                 }
             ],
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
         )
         
         response = chat_completion.choices[0].message.content
