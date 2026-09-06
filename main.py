@@ -1,4 +1,5 @@
 import os
+import threading
 import requests
 from flask import Flask
 from telegram import Update
@@ -15,7 +16,7 @@ def home():
 # 2. Configuración de API Keys desde las variables de entorno de Render
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-LAPTOP_IP = os.environ.get("LAPTOP_TAILSCALE_IP", "100.64.222.52")
+LAPTOP_IP = os.environ.get("LAPTOP_TAILSCALE_IP", "aron.tail030744.ts.net")
 AGENT_TOKEN = os.environ.get("AGENT_SECRET_TOKEN", "mi_jarvis_secreto_2026")
 
 # Cliente de Groq para la IA
@@ -27,9 +28,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("¡Hola! Soy Jarvis. Estoy listo para ayudarte. Usa /laptop_status para ver el estado de tu portátil.")
 
 async def laptop_status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Pide los datos de CPU, RAM y Batería al portátil por Tailscale"""
+    """Pide los datos de CPU, RAM y Batería al portátil por Tailscale Funnel o IP directa"""
     await update.message.reply_text("📡 Conectando con el portátil...")
-    url = f"http://{LAPTOP_IP}:5000/status"
+    
+    # Si la variable tiene el dominio de Funnel (.ts.net) usa HTTPS en puerto 443, si es IP usa HTTP en puerto 5000
+    if "ts.net" in LAPTOP_IP:
+        url = f"https://{LAPTOP_IP}/status"
+    else:
+        url = f"http://{LAPTOP_IP}:5000/status"
+        
     headers = {"X-Agent-Token": AGENT_TOKEN}
     
     try:
@@ -49,7 +56,7 @@ async def laptop_status_command(update: Update, context: ContextTypes.DEFAULT_TY
         else:
             await update.message.reply_text(f"⚠️ El agente respondió con código de error: {response.status_code}")
     except Exception as e:
-        await update.message.reply_text(f"🔴 No se pudo conectar con el portátil por Tailscale.\nError: {e}")
+        await update.message.reply_text(f"🔴 No se pudo conectar con el portátil.\nError: {e}")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Responde a mensajes de texto normales usando la IA de Groq"""
@@ -86,8 +93,7 @@ def main():
     
     print("Bot iniciando polling...")
     
-    # Arrancar Flask en segundo plano y Telegram en primer plano
-    import threading
+    # Arrancar Flask en segundo plano para Render y Telegram en primer plano
     port = int(os.environ.get("PORT", 10000))
     threading.Thread(target=lambda: app.run(host="0.0.0.0", port=port, use_reloader=False), daemon=True).start()
     
