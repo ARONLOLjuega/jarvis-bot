@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from groq import Groq
 
-# 1. Servidor Web de Flask (para mantener el Web Service de Render gratis y activo)
+# 1. Servidor Web dummy para mantener activo el Web Service gratuito de Render
 app = Flask(__name__)
 
 @app.route('/')
@@ -17,9 +17,9 @@ def run_flask():
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
 
-# 2. Cargar variables de entorno (claves de Telegram y Groq)
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+# 2. Claves de API integradas directamente
+TELEGRAM_TOKEN = "8779525855:AAERuhFLNij1xASu0dHv1UAbftMDT1eqxc"
+GROQ_API_KEY = "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"
 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -34,7 +34,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     
     try:
-        # Petición a la API rápida de Groq con Llama 3.1
+        # Petición a la API de Groq con Llama 3.1
         chat_completion = client.chat.completions.create(
             messages=[
                 {
@@ -57,7 +57,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 4. Función Principal
 def main():
-    # Iniciar Flask en un hilo secundario para no bloquear a Telegram
+    # Iniciar Flask en un hilo secundario
     t = Thread(target=run_flask)
     t.daemon = True
     t.start()
