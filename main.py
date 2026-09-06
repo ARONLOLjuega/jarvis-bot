@@ -17,9 +17,9 @@ def run_flask():
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
 
-# 2. Claves de API integradas directamente
-TELEGRAM_TOKEN = "8779525855:AAERuhFLNij1xASu0dHv1UAbftMDT1eqxc"
-GROQ_API_KEY = "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"
+# 2. Cargar claves desde las Variables de Entorno de Render
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -30,11 +30,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     
-    # Enviar la animación de "Escribiendo..." en Telegram
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     
     try:
-        # Petición a la API de Groq con Llama 3.1
         chat_completion = client.chat.completions.create(
             messages=[
                 {
@@ -57,12 +55,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 4. Función Principal
 def main():
-    # Iniciar Flask en un hilo secundario
     t = Thread(target=run_flask)
     t.daemon = True
     t.start()
 
-    # Iniciar el bot de Telegram
     application = Application.builder().token(TELEGRAM_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
