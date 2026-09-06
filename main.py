@@ -30,9 +30,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     
+    # Enviar la animación de "Escribiendo..." en Telegram
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     
     try:
+        # Petición a la API de Groq con el ID oficial de Llama 3
         chat_completion = client.chat.completions.create(
             messages=[
                 {
@@ -44,7 +46,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "content": user_text,
                 }
             ],
-            model="llama-3.3-70b-versatile",
+            model="llama3-8b-8192",
         )
         
         response = chat_completion.choices[0].message.content
@@ -55,10 +57,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 4. Función Principal
 def main():
+    # Iniciar Flask en un hilo secundario
     t = Thread(target=run_flask)
     t.daemon = True
     t.start()
 
+    # Iniciar el bot de Telegram
     application = Application.builder().token(TELEGRAM_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
